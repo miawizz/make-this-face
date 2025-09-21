@@ -1,19 +1,26 @@
-// app.js
+// app.js (no camera)
 (() => {
   const els = {
     promptText: document.getElementById("promptText"),
     installBtn: document.getElementById("installBtn"),
-    // WCSL-style controls
+    // Controls
     btnNext: document.getElementById("btnNext"),
     btnBack: document.getElementById("btnBack"),
     btnFwd:  document.getElementById("btnFwd"),
+    // Favorites
+    btnSave: document.getElementById("btnSave"),
+    favList: document.getElementById("favList"),
+    favEmpty: document.getElementById("favEmpty"),
+    btnCopyAll: document.getElementById("btnCopyAll"),
+    btnClear: document.getElementById("btnClear"),
+    toast: document.getElementById("toast"),
     // Modal
     modal: document.getElementById("welcomeModal"),
     agreeChk: document.getElementById("agreeChk"),
     agreeBtn: document.getElementById("agreeBtn"),
   };
 
-  // ==== YOUR 100 PROMPTS ====
+  // ==== 100 PROMPTS ====
   const PROMPTS = [
     { t: "You just smelled the nastiest rotten fart you’ve ever smelled" },
     { t: "You just won a lifetime supply of donuts" },
@@ -132,12 +139,12 @@
   });
   window.addEventListener("appinstalled", () => { els.installBtn.hidden = true; });
 
-  // ===== WCSL-style deck + history + Back/Forward =====
+  // ===== Deck + history + Back/Forward =====
   const elPrompt = els.promptText;
   function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
   function makeOrder(){ return shuffle(Array.from({length:PROMPTS.length},(_,i)=>i)); }
 
-  const KEY = 'mtf_deck_v1';
+  const KEY = 'mtf_deck_v2';
   function save(s){ localStorage.setItem(KEY, JSON.stringify(s)); }
   function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||'{}'); } catch { return {}; } }
 
@@ -166,13 +173,13 @@
     STATE.history.push(pick);
     if (STATE.history.length > 500) STATE.history.shift();
     STATE.hpos = STATE.history.length;
-    show(pick); updateNav(); save(STATE);
+    show(pick); updateNav(); save(STATE); updateSaveBtn();
   }
   function goBack(){
-    if (STATE.hpos > 1){ STATE.hpos -= 1; show(STATE.history[STATE.hpos-1]); updateNav(); save(STATE); }
+    if (STATE.hpos > 1){ STATE.hpos -= 1; show(STATE.history[STATE.hpos-1]); updateNav(); save(STATE); updateSaveBtn(); }
   }
   function goFwd(){
-    if (STATE.hpos < STATE.history.length){ const idx = STATE.history[STATE.hpos]; STATE.hpos += 1; show(idx); updateNav(); save(STATE); }
+    if (STATE.hpos < STATE.history.length){ const idx = STATE.history[STATE.hpos]; STATE.hpos += 1; show(idx); updateNav(); save(STATE); updateSaveBtn(); }
   }
 
   // Wire buttons + keyboard
@@ -183,9 +190,10 @@
     if (e.key==='Enter') goNext();
     if (e.key==='ArrowLeft') goBack();
     if (e.key==='ArrowRight') goFwd();
+    if (e.key.toLowerCase()==='s') saveCurrent(); // quick save
   });
 
-  // First paint: ensure a prompt shows
+  // First paint
   if (STATE.history.length){
     STATE.hpos = STATE.history.length;
     show(STATE.history[STATE.history.length-1]);
@@ -193,119 +201,86 @@
     goNext();
   }
 
-  // ===== Camera + capture with prompt overlay =====
-  (function cameraModule(){
-    const video = document.getElementById('mtfVideo');
-    const canvas = document.getElementById('mtfCanvas');
-    const overlay = document.getElementById('cameraOverlay');
-    const openBtn = document.getElementById('openCameraBtn');
-    const captureBtn = document.getElementById('captureBtn');
-    const retakeBtn = document.getElementById('retakeBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const shareBtn = document.getElementById('shareBtn');
-    let stream = null;
+  // ===== Favorites =====
+  const APP_NS = 'mtf';
+  const Kf = (s)=>`${APP_NS}_${s}`;
+  const KEY_FAVS = Kf('favs_v1');
 
-    function updateOverlayText(text){ if (overlay) overlay.textContent = text || ''; }
-    new MutationObserver(()=>updateOverlayText(elPrompt.textContent))
-      .observe(elPrompt, { childList:true, characterData:true, subtree:true });
+  function loadFavs(){ try { return JSON.parse(localStorage.getItem(KEY_FAVS)||'[]'); } catch { return []; } }
+  function saveFavs(list){ localStorage.setItem(KEY_FAVS, JSON.stringify(list)); }
+  let FAVORITES = loadFavs();
 
-    async function startCamera(){
-      try{
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user' }, audio:false });
-        if (video){ video.srcObject = stream; }
-        if (captureBtn) captureBtn.disabled = false;
-        if (openBtn) openBtn.hidden = true;
-        updateOverlayText(elPrompt.textContent);
-      }catch(err){
-        alert('Camera not available. Please check permissions or try a different device.');
-        console.error(err);
-      }
-    }
-    function stopCamera(){
-      if (stream){ stream.getTracks().forEach(t=>t.stop()); stream = null; }
-      if (video) video.srcObject = null;
-      if (captureBtn) captureBtn.disabled = true;
-      if (openBtn) openBtn.hidden = false;
-    }
-    function wrapText(ctx, text, x, y, maxWidth, lineHeight){
-      const words = text.split(' '); let line='', lines=[];
-      for(let n=0;n<words.length;n++){
-        const test = line + words[n] + ' ';
-        if(ctx.measureText(test).width > maxWidth && n>0){ lines.push(line.trim()); line = words[n] + ' '; }
-        else { line = test; }
-      }
-      lines.push(line.trim());
-      const start = y - (lines.length-1)*(lineHeight/2);
-      for(let i=0;i<lines.length;i++) ctx.fillText(lines[i], x, start + i*lineHeight);
-    }
-    function capturePhoto(){
-      if (!video) return;
-      const w = video.videoWidth, h = video.videoHeight;
-      if (!w || !h) return;
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, w, h);
+  function currentIndex(){
+    if (!STATE.history.length || STATE.hpos===0) return null;
+    return STATE.hpos===STATE.history.length ? STATE.history[STATE.history.length-1] : STATE.history[STATE.hpos-1];
+  }
+  function isFav(i){ return FAVORITES.includes(i); }
 
-      const prompt = elPrompt.textContent;
-      const pad = Math.round(w*0.03);
-      const boxH = Math.round(h*0.12);
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      ctx.fillRect(0, h - boxH - pad, w, boxH + pad);
+  function updateSaveBtn(){
+    const i = currentIndex();
+    if (!els.btnSave) return;
+    if (i==null){ els.btnSave.disabled=true; els.btnSave.textContent='Save to Favorites'; return; }
+    els.btnSave.disabled=false;
+    els.btnSave.textContent = isFav(i) ? 'Saved' : 'Save to Favorites';
+  }
 
-      ctx.fillStyle = '#fff';
-      const fontSize = Math.round(w/18);
-      ctx.font = `bold ${fontSize}px Poppins, system-ui, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const maxWidth = w - pad*4;
-      wrapText(ctx, prompt, w/2, h - boxH/2 - pad/2, maxWidth, fontSize*1.15);
+  function renderFavs(){
+    if (!els.favList || !els.favEmpty) return;
+    els.favList.innerHTML='';
+    if (!FAVORITES.length){ els.favEmpty.style.display='block'; return; }
+    els.favEmpty.style.display='none';
 
-      const ts = new Date().toLocaleTimeString();
-      ctx.font = `${Math.round(fontSize*0.45)}px Poppins, system-ui, sans-serif`;
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      ctx.fillText(ts, w - pad - 30, h - pad - 10);
+    FAVORITES.forEach(i=>{
+      const li = document.createElement('li'); li.className='favItem';
+      const txt = document.createElement('div'); txt.className='favText'; txt.textContent = PROMPTS[i].t;
+      const actions = document.createElement('div'); actions.className='favActions';
 
-      if (downloadBtn) downloadBtn.hidden = false;
-      if (shareBtn) shareBtn.hidden = (navigator.share === undefined);
-      if (retakeBtn) retakeBtn.hidden = false;
-      if (captureBtn) captureBtn.hidden = true;
+      const copyBtn = document.createElement('button'); copyBtn.className='iconBtn'; copyBtn.textContent='Copy';
+      copyBtn.onclick = ()=>{ navigator.clipboard.writeText(PROMPTS[i].t); toast('Copied'); };
 
-      stopCamera();
-    }
-    function downloadImage(){
-      const dataUrl = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = dataUrl;
-      const short = elPrompt.textContent.slice(0,25).replace(/\s+/g,'_');
-      a.download = `make-this-face_${short}_${Date.now()}.png`;
-      document.body.appendChild(a); a.click(); a.remove();
-    }
-    async function shareImage(){
-      if (!navigator.share) return;
-      canvas.toBlob(async blob=>{
-        const file = new File([blob], 'make-this-face.png', { type: 'image/png' });
-        try{ await navigator.share({ files:[file], title:'Make This Face', text: elPrompt.textContent }); }
-        catch(e){ console.warn('Share canceled/failed', e); }
-      }, 'image/png');
-    }
-    function retake(){
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      if (downloadBtn) downloadBtn.hidden = true;
-      if (shareBtn) shareBtn.hidden = true;
-      if (retakeBtn) retakeBtn.hidden = true;
-      if (captureBtn) captureBtn.hidden = false;
-      startCamera();
-    }
+      const delBtn = document.createElement('button'); delBtn.className='iconBtn'; delBtn.textContent='Remove';
+      delBtn.onclick = ()=>{ FAVORITES = FAVORITES.filter(n=>n!==i); saveFavs(FAVORITES); renderFavs(); updateSaveBtn(); toast('Removed'); };
 
-    openBtn?.addEventListener('click', startCamera);
-    captureBtn?.addEventListener('click', capturePhoto);
-    retakeBtn?.addEventListener('click', retake);
-    downloadBtn?.addEventListener('click', downloadImage);
-    shareBtn?.addEventListener('click', shareImage);
-  })();
+      actions.appendChild(copyBtn); actions.appendChild(delBtn);
+      li.appendChild(txt); li.appendChild(actions);
+      els.favList.appendChild(li);
+    });
+  }
 
-  // ===== Service worker (TEMP: comment out during setup if caching gets in the way) =====
+  function saveCurrent(){
+    const i = currentIndex(); if (i==null) return;
+    if (!isFav(i)){ FAVORITES.push(i); saveFavs(FAVORITES); renderFavs(); updateSaveBtn(); toast('Saved to favorites'); }
+    else { toast('Already saved'); }
+  }
+  function copyAllFavs(){
+    if (!FAVORITES.length){ toast('No favorites to copy'); return; }
+    const text = FAVORITES.map(i=>PROMPTS[i].t).join('\n');
+    navigator.clipboard.writeText(text); toast('Favorites copied');
+  }
+  function clearFavs(){
+    FAVORITES = []; saveFavs(FAVORITES); renderFavs(); updateSaveBtn(); toast('Favorites cleared');
+  }
+
+  // Tiny toast
+  let toastTimer=null;
+  function toast(msg){
+    if (!els.toast) return;
+    els.toast.textContent = msg;
+    els.toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>els.toast.classList.remove('show'), 1200);
+  }
+
+  // Wire favorites UI
+  els.btnSave   && els.btnSave  .addEventListener('click', saveCurrent);
+  els.btnCopyAll&& els.btnCopyAll.addEventListener('click', copyAllFavs);
+  els.btnClear  && els.btnClear .addEventListener('click', clearFavs);
+
+  // Init favorites panel
+  renderFavs();
+  updateSaveBtn();
+
+  // ===== Service worker (enable when ready) =====
   // if ('serviceWorker' in navigator) {
   //   window.addEventListener('load', () => {
   //     navigator.serviceWorker.register('service-worker.js?v=3').catch(console.error);
