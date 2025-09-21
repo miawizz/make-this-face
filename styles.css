@@ -43,14 +43,40 @@ button[hidden]{display:none}
 .btns button{background:var(--accent);color:#fff}
 .btns button:disabled{opacity:.55;cursor:not-allowed}
 
-/* Camera */
-.camera-area{ margin:1rem auto; max-width:720px; text-align:center }
-.camera-preview{ position:relative; display:inline-block; border-radius:12px; overflow:hidden; background:#000 }
-.camera-preview video,.camera-preview canvas{ width:100%; max-width:480px; height:auto; display:block }
-.camera-overlay{ position:absolute; left:0; right:0; bottom:0; padding:.6rem; background:linear-gradient(transparent, rgba(0,0,0,.5)); color:#fff; font-weight:700; font-size:clamp(.9rem,2.2vw,1.35rem); display:flex; align-items:center; justify-content:center; text-align:center; pointer-events:none }
-.camera-controls{ margin-top:.5rem; display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap }
-.camera-controls button{ background:var(--brand) }
-.camera-note{ opacity:.75; font-size:.9rem; margin-top:.4rem }
+/* Secondary pill button */
+.btn-secondary{ background:#ffe9d6; color:#6b3a28; }
+.btn-secondary:hover{ background:#ffdcbf; }
+
+/* Favorites area */
+#favWrap{ max-width:860px; margin:2rem auto 0; text-align:left; }
+#favHeader{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+#favHeader h3{ margin:0; color:#7a3e2e; font-size:1.1rem; }
+#favList{
+  list-style:none; padding:0; margin:12px 0 0;
+  display:grid; grid-template-columns:1fr; gap:10px;
+}
+.favItem{
+  background:#fff; border:1px solid #ffdcbf; border-radius:14px; padding:12px 14px;
+  display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+.favText{ font-size:.98rem; line-height:1.35rem; }
+.favActions{ display:flex; gap:8px; flex-shrink:0; }
+.iconBtn{
+  border:0; background:#ffe9d6; color:#6b3a28; padding:.45rem .7rem; border-radius:10px; font-size:.9rem; cursor:pointer;
+}
+.iconBtn:hover{ background:#ffdcbf; }
+.muted{ color:#6b7f88; font-size:.9rem; }
+
+/* Tiny toast */
+#toast{
+  position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+  background:#127490; color:#fff; padding:10px 14px; border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.18); opacity:0; pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  font-size:.95rem; z-index:9999;
+}
+#toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); }
 
 /* Modal */
 .modal{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:grid; place-items:center }
