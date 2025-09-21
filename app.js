@@ -1,17 +1,13 @@
-<script>
 // app.js
 (() => {
-  const SCOPE = "/make-this-face/";
   const els = {
     promptText: document.getElementById("promptText"),
-    tagList: document.getElementById("tagList"),
     installBtn: document.getElementById("installBtn"),
-    shuffleBtn: document.getElementById("shuffleBtn"),
-    prevBtn: document.getElementById("prevBtn"),
-    nextBtn: document.getElementById("nextBtn"),
-    kidMode: document.getElementById("kidMode"),
-    showTags: document.getElementById("showTags"),
-    bigText: document.getElementById("bigText"),
+    // WCSL-style controls
+    btnNext: document.getElementById("btnNext"),
+    btnBack: document.getElementById("btnBack"),
+    btnFwd:  document.getElementById("btnFwd"),
+    // Modal
     modal: document.getElementById("welcomeModal"),
     agreeChk: document.getElementById("agreeChk"),
     agreeBtn: document.getElementById("agreeBtn"),
@@ -121,96 +117,84 @@
     { t: "You just saw a grandpa riding a skateboard and he did a backflip on it" }
   ];
 
-  let order = [...PROMPTS.keys()];
-  let idx = 0;
-
-  function saveState() {
-    localStorage.setItem("mtf_state", JSON.stringify({
-      idx, order,
-      kid: els.kidMode.checked,
-      tags: els.showTags.checked,
-      big: els.bigText.checked,
-      ok: localStorage.getItem("mtf_ok")
-    }));
-  }
-  function loadState() {
-    try {
-      const s = JSON.parse(localStorage.getItem("mtf_state") || "{}");
-      if (Array.isArray(s.order) && s.order.length === PROMPTS.length) order = s.order;
-      if (Number.isInteger(s.idx)) idx = Math.min(Math.max(0, s.idx), order.length - 1);
-      els.kidMode.checked = !!s.kid;
-      els.showTags.checked = !!s.tags;
-      els.bigText.checked = !!s.big;
-    } catch {}
-  }
-
-  function render() {
-    const p = PROMPTS[order[idx]];
-    els.promptText.textContent = p.t;
-    document.body.dataset.big = els.bigText.checked ? "1" : "";
-    if (els.showTags.checked && p.tags && p.tags.length) {
-      els.tagList.hidden = false;
-      els.tagList.innerHTML = p.tags.map(tag => `<span class="chip">${tag}</span>`).join("");
-    } else {
-      els.tagList.hidden = true;
-      els.tagList.innerHTML = "";
-    }
-  }
-
-  function next(n = 1) { idx = (idx + n + order.length) % order.length; render(); saveState(); }
-  function shuffle() {
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [order[i], order[j]] = [order[j], order[i]];
-    }
-    idx = 0; render(); saveState();
-  }
-
-  // Buttons & keys
-  els.nextBtn.addEventListener("click", () => next(1));
-  els.prevBtn.addEventListener("click", () => next(-1));
-  els.shuffleBtn.addEventListener("click", shuffle);
-  [els.kidMode, els.showTags, els.bigText].forEach(el =>
-    el.addEventListener("change", () => { render(); saveState(); })
-  );
-  window.addEventListener("keydown", e => {
-    if (e.key === "ArrowRight") next(1);
-    else if (e.key === "ArrowLeft") next(-1);
-    else if (e.key.toLowerCase() === "s") shuffle();
-  });
-
-  // First-visit privacy modal
-  function showModal() { els.modal.classList.remove("hidden"); }
-  function hideModal() { els.modal.classList.add("hidden"); }
+  // ===== First-visit privacy modal =====
+  function showModal(){ els.modal?.classList.remove("hidden"); }
+  function hideModal(){ els.modal?.classList.add("hidden"); }
   if (!localStorage.getItem("mtf_ok")) showModal();
   els.agreeChk?.addEventListener("change", () => { els.agreeBtn.disabled = !els.agreeChk.checked; });
   els.agreeBtn?.addEventListener("click", () => { localStorage.setItem("mtf_ok", "1"); hideModal(); });
 
-  // Install flow
+  // ===== Install flow =====
   let deferredPrompt = null;
-  window.addEventListener("beforeinstallprompt", e => {
-    e.preventDefault(); deferredPrompt = e; els.installBtn.hidden = false;
-  });
-  els.installBtn.addEventListener("click", async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt(); await deferredPrompt.userChoice;
-    deferredPrompt = null; els.installBtn.hidden = true;
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; els.installBtn.hidden = false; });
+  els.installBtn?.addEventListener("click", async () => {
+    if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; els.installBtn.hidden = true;
   });
   window.addEventListener("appinstalled", () => { els.installBtn.hidden = true; });
 
-  // Service worker
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register(`${SCOPE}service-worker.js?v=2`, { scope: SCOPE }).catch(console.error);
-    });
+  // ===== WCSL-style deck + history + Back/Forward =====
+  const elPrompt = els.promptText;
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+  function makeOrder(){ return shuffle(Array.from({length:PROMPTS.length},(_,i)=>i)); }
+
+  const KEY = 'mtf_deck_v1';
+  function save(s){ localStorage.setItem(KEY, JSON.stringify(s)); }
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||'{}'); } catch { return {}; } }
+
+  let STATE = load();
+  if (!Array.isArray(STATE.order) || STATE.order.length !== PROMPTS.length){
+    STATE = { order: makeOrder(), idx: 0, history: [], hpos: 0 };
+    save(STATE);
   }
 
-  // Init
-  loadState();
-  if (order.length === PROMPTS.length) render(); else shuffle();
+  function show(i){ elPrompt.textContent = PROMPTS[i].t; }
+  function updateNav(){
+    els.btnBack && (els.btnBack.disabled = STATE.hpos <= 1);
+    els.btnFwd  && (els.btnFwd.disabled  = STATE.hpos >= STATE.history.length);
+  }
+  function pickNext(){
+    let { order, idx } = STATE;
+    const next = order[idx];
+    idx++;
+    if (idx >= order.length){ order = makeOrder(); idx = 0; }
+    STATE.order = order; STATE.idx = idx;
+    return next;
+  }
+  function goNext(){
+    if (STATE.hpos < STATE.history.length) STATE.history.splice(STATE.hpos);
+    const pick = pickNext();
+    STATE.history.push(pick);
+    if (STATE.history.length > 500) STATE.history.shift();
+    STATE.hpos = STATE.history.length;
+    show(pick); updateNav(); save(STATE);
+  }
+  function goBack(){
+    if (STATE.hpos > 1){ STATE.hpos -= 1; show(STATE.history[STATE.hpos-1]); updateNav(); save(STATE); }
+  }
+  function goFwd(){
+    if (STATE.hpos < STATE.history.length){ const idx = STATE.history[STATE.hpos]; STATE.hpos += 1; show(idx); updateNav(); save(STATE); }
+  }
 
-  // === Camera module (permission granted when user taps Open Camera) ===
-  (function cameraModule() {
+  // Wire buttons + keyboard
+  els.btnNext?.addEventListener('click', goNext);
+  els.btnBack?.addEventListener('click', goBack);
+  els.btnFwd ?.addEventListener('click', goFwd);
+  window.addEventListener('keydown', e=>{
+    if (e.key==='Enter') goNext();
+    if (e.key==='ArrowLeft') goBack();
+    if (e.key==='ArrowRight') goFwd();
+  });
+
+  // First paint: ensure a prompt shows
+  if (STATE.history.length){
+    STATE.hpos = STATE.history.length;
+    show(STATE.history[STATE.history.length-1]);
+  } else {
+    goNext();
+  }
+
+  // ===== Camera + capture with prompt overlay =====
+  (function cameraModule(){
     const video = document.getElementById('mtfVideo');
     const canvas = document.getElementById('mtfCanvas');
     const overlay = document.getElementById('cameraOverlay');
@@ -221,96 +205,97 @@
     const shareBtn = document.getElementById('shareBtn');
     let stream = null;
 
-    function updateOverlayText(text) { overlay.textContent = text || ''; }
+    function updateOverlayText(text){ if (overlay) overlay.textContent = text || ''; }
+    new MutationObserver(()=>updateOverlayText(elPrompt.textContent))
+      .observe(elPrompt, { childList:true, characterData:true, subtree:true });
 
-    async function startCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-        video.srcObject = stream;
-        captureBtn.disabled = false;
-        openBtn.hidden = true;
-        updateOverlayText(els.promptText.textContent);
-      } catch (err) {
-        alert('Camera not available. Please check permissions or use a different device.');
+    async function startCamera(){
+      try{
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user' }, audio:false });
+        if (video){ video.srcObject = stream; }
+        if (captureBtn) captureBtn.disabled = false;
+        if (openBtn) openBtn.hidden = true;
+        updateOverlayText(elPrompt.textContent);
+      }catch(err){
+        alert('Camera not available. Please check permissions or try a different device.');
         console.error(err);
       }
     }
-    function stopCamera() {
-      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-      video.srcObject = null; captureBtn.disabled = true; openBtn.hidden = false;
+    function stopCamera(){
+      if (stream){ stream.getTracks().forEach(t=>t.stop()); stream = null; }
+      if (video) video.srcObject = null;
+      if (captureBtn) captureBtn.disabled = true;
+      if (openBtn) openBtn.hidden = false;
     }
-
-    function capturePhoto() {
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+      const words = text.split(' '); let line='', lines=[];
+      for(let n=0;n<words.length;n++){
+        const test = line + words[n] + ' ';
+        if(ctx.measureText(test).width > maxWidth && n>0){ lines.push(line.trim()); line = words[n] + ' '; }
+        else { line = test; }
+      }
+      lines.push(line.trim());
+      const start = y - (lines.length-1)*(lineHeight/2);
+      for(let i=0;i<lines.length;i++) ctx.fillText(lines[i], x, start + i*lineHeight);
+    }
+    function capturePhoto(){
+      if (!video) return;
       const w = video.videoWidth, h = video.videoHeight;
+      if (!w || !h) return;
       canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, w, h);
 
-      const prompt = els.promptText.textContent;
-      const pad = Math.round(w * 0.03);
-      const boxH = Math.round(h * 0.12);
+      const prompt = elPrompt.textContent;
+      const pad = Math.round(w*0.03);
+      const boxH = Math.round(h*0.12);
       ctx.fillStyle = 'rgba(0,0,0,0.45)';
       ctx.fillRect(0, h - boxH - pad, w, boxH + pad);
 
       ctx.fillStyle = '#fff';
-      const fontSize = Math.round(w / 18);
+      const fontSize = Math.round(w/18);
       ctx.font = `bold ${fontSize}px Poppins, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const maxWidth = w - pad * 4;
-      wrapText(ctx, prompt, w / 2, h - boxH/2 - pad/2, maxWidth, fontSize * 1.15);
+      const maxWidth = w - pad*4;
+      wrapText(ctx, prompt, w/2, h - boxH/2 - pad/2, maxWidth, fontSize*1.15);
 
       const ts = new Date().toLocaleTimeString();
-      ctx.font = `${Math.round(fontSize * 0.45)}px Poppins, system-ui, sans-serif`;
+      ctx.font = `${Math.round(fontSize*0.45)}px Poppins, system-ui, sans-serif`;
       ctx.fillStyle = 'rgba(255,255,255,0.85)';
       ctx.fillText(ts, w - pad - 30, h - pad - 10);
 
-      downloadBtn.hidden = false;
-      shareBtn.hidden = (navigator.share === undefined);
-      retakeBtn.hidden = false;
-      captureBtn.hidden = true;
+      if (downloadBtn) downloadBtn.hidden = false;
+      if (shareBtn) shareBtn.hidden = (navigator.share === undefined);
+      if (retakeBtn) retakeBtn.hidden = false;
+      if (captureBtn) captureBtn.hidden = true;
 
       stopCamera();
     }
-
-    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-      const words = text.split(' ');
-      let line = '', lines = [];
-      for (let n = 0; n < words.length; n++) {
-        const test = line + words[n] + ' ';
-        if (ctx.measureText(test).width > maxWidth && n > 0) {
-          lines.push(line.trim()); line = words[n] + ' ';
-        } else { line = test; }
-      }
-      lines.push(line.trim());
-      const offset = y - (lines.length - 1) * (lineHeight/2);
-      for (let i = 0; i < lines.length; i++) ctx.fillText(lines[i], x, offset + i * lineHeight);
-    }
-
-    function downloadImage() {
+    function downloadImage(){
       const dataUrl = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = dataUrl;
-      const short = els.promptText.textContent.slice(0,25).replace(/\s+/g,'_');
+      const short = elPrompt.textContent.slice(0,25).replace(/\s+/g,'_');
       a.download = `make-this-face_${short}_${Date.now()}.png`;
       document.body.appendChild(a); a.click(); a.remove();
     }
-
-    function retake() {
+    async function shareImage(){
+      if (!navigator.share) return;
+      canvas.toBlob(async blob=>{
+        const file = new File([blob], 'make-this-face.png', { type: 'image/png' });
+        try{ await navigator.share({ files:[file], title:'Make This Face', text: elPrompt.textContent }); }
+        catch(e){ console.warn('Share canceled/failed', e); }
+      }, 'image/png');
+    }
+    function retake(){
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0,0,canvas.width,canvas.height);
-      downloadBtn.hidden = true; shareBtn.hidden = true; retakeBtn.hidden = true; captureBtn.hidden = false;
+      if (downloadBtn) downloadBtn.hidden = true;
+      if (shareBtn) shareBtn.hidden = true;
+      if (retakeBtn) retakeBtn.hidden = true;
+      if (captureBtn) captureBtn.hidden = false;
       startCamera();
-    }
-
-    async function shareImage() {
-      if (!navigator.share) return;
-      canvas.toBlob(async blob => {
-        const file = new File([blob], 'make-this-face.png', { type: 'image/png' });
-        try {
-          await navigator.share({ files: [file], title: 'Make This Face', text: els.promptText.textContent });
-        } catch (e) { console.warn('Share canceled/failed', e); }
-      }, 'image/png');
     }
 
     openBtn?.addEventListener('click', startCamera);
@@ -318,9 +303,12 @@
     retakeBtn?.addEventListener('click', retake);
     downloadBtn?.addEventListener('click', downloadImage);
     shareBtn?.addEventListener('click', shareImage);
-
-    new MutationObserver(() => updateOverlayText(els.promptText.textContent))
-      .observe(els.promptText, { childList: true, characterData: true, subtree: true });
   })();
+
+  // ===== Service worker (TEMP: comment out during setup if caching gets in the way) =====
+  // if ('serviceWorker' in navigator) {
+  //   window.addEventListener('load', () => {
+  //     navigator.serviceWorker.register('service-worker.js?v=3').catch(console.error);
+  //   });
+  // }
 })();
-</script>
