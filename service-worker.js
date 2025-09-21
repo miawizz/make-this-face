@@ -1,40 +1,33 @@
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";           // bump when you ship changes
 const CACHE_NAME = `mtf-${CACHE_VERSION}`;
-const SCOPE = "/make-this-face/";
 const PRECACHE = [
-  `${SCOPE}index.html`,
-  `${SCOPE}styles.css?v=3`,
-  `${SCOPE}app.js?v=5`,
-  `${SCOPE}manifest.webmanifest?v=1`,
-  `${SCOPE}icons/icon-192.png`,
-  `${SCOPE}icons/icon-512.png`
+  `index.html`,
+  `styles.css?v=4`,
+  `app.js?v=6`,
+  `manifest.webmanifest?v=1`,
+  `icons/icon-192.png`,
+  `icons/icon-512.png`,
 ];
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE)).then(() => self.skipWaiting())
-  );
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(PRECACHE)).then(()=>self.skipWaiting()));
 });
-self.addEventListener("activate", event => {
-  event.waitUntil(
+self.addEventListener("activate", e => {
+  e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.map(k => { if (!k.startsWith("mtf-")) return caches.delete(k); }))
-    ).then(() => self.clients.claim())
+    ).then(()=>self.clients.claim())
   );
 });
-self.addEventListener("fetch", event => {
-  const { request } = event;
-  if (request.method !== "GET") return;
-  event.respondWith(
-    caches.match(request).then(cached => {
-      const fetchPromise = fetch(request).then(response => {
-        try {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-        } catch {}
-        return response;
-      }).catch(() => cached);
-      return cached || fetchPromise;
+self.addEventListener("fetch", e => {
+  if (e.request.method !== "GET") return;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      const fetcher = fetch(e.request).then(res => {
+        try { const copy = res.clone(); caches.open(CACHE_NAME).then(c => c.put(e.request, copy)); } catch {}
+        return res;
+      }).catch(()=>cached);
+      return cached || fetcher;
     })
   );
 });
