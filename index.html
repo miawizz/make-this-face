@@ -5,34 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Make This Face</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <meta name="theme-color" content="#1b3c4b" />
+  <meta name="theme-color" content="#127490" />
 
-  <!-- iOS PWA support -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="apple-touch-icon" href="/make-this-face/icons/icon-192.png" />
+  <!-- PWA / Icons -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-  <!-- Manifest / CSS / App JS (100 prompts are in app.js) -->
-  <link rel="manifest" href="/make-this-face/manifest.webmanifest?v=1" />
-  <link rel="stylesheet" href="/make-this-face/styles.css?v=3" />
-  <script defer src="/make-this-face/app.js?v=5"></script>
+  <!-- Styles + App (relative paths so they load on GitHub Pages) -->
+  <link rel="stylesheet" href="styles.css?v=4" />
+  <script defer src="app.js?v=6"></script>
 </head>
 <body>
   <header class="app-header">
     <div class="brand">
-      <img class="logo" src="/make-this-face/icons/icon-192.png" alt="Make This Face logo" width="36" height="36" />
+      <img class="logo" src="icons/icon-192.png" alt="Make This Face logo" width="36" height="36" />
       <h1>Make This Face</h1>
     </div>
     <div class="actions">
       <button id="installBtn" aria-label="Install app" hidden>Install</button>
-      <button id="shuffleBtn" aria-label="New prompt">New Prompt</button>
-      <button id="prevBtn" aria-label="Previous" title="Previous">◀</button>
-      <button id="nextBtn" aria-label="Next" title="Next">▶</button>
     </div>
   </header>
 
   <main id="main" class="container" tabindex="-1">
-    <!-- Install instructions like your other apps -->
+    <!-- Install instructions (simple) -->
     <section class="notice">
       <details>
         <summary>Install this app</summary>
@@ -51,18 +46,25 @@
 
     <!-- Prompt card -->
     <section class="prompt-card" aria-live="polite" aria-atomic="true">
-      <p id="promptText" class="prompt-text">Loading</p>
-      <div class="tags" id="tagList" hidden></div>
+      <p id="promptText" class="prompt-text">Loading…</p>
     </section>
 
-    <!-- Camera capture area (permission happens when user taps Open Camera) -->
+    <!-- WCSL-style controls -->
+    <section class="btns">
+      <button id="btnNext">New Prompt</button>
+    </section>
+    <section class="btns">
+      <button id="btnBack">Back</button>
+      <button id="btnFwd">Forward</button>
+    </section>
+
+    <!-- Optional: camera area (kept; works once app is loading) -->
     <section class="camera-area" aria-live="polite">
       <div class="camera-preview">
         <video id="mtfVideo" autoplay playsinline muted></video>
         <canvas id="mtfCanvas" hidden></canvas>
         <div id="cameraOverlay" class="camera-overlay" aria-hidden="true"></div>
       </div>
-
       <div class="camera-controls">
         <button id="openCameraBtn">Open Camera</button>
         <button id="captureBtn" disabled>Capture Photo</button>
@@ -70,21 +72,7 @@
         <button id="downloadBtn" hidden>Download Photo</button>
         <button id="shareBtn" hidden>Share</button>
       </div>
-
       <p class="camera-note">Photos stay on this device unless you choose to share them. Please get permission before taking pictures.</p>
-    </section>
-
-    <!-- Display controls -->
-    <section class="controls">
-      <label class="inline">
-        <input type="checkbox" id="kidMode" /> Kid-mode
-      </label>
-      <label class="inline">
-        <input type="checkbox" id="showTags" /> Show tags
-      </label>
-      <label class="inline">
-        <input type="checkbox" id="bigText" /> Big text
-      </label>
     </section>
 
     <section class="footer-note">
@@ -95,7 +83,7 @@
     </section>
   </main>
 
-  <!-- First-visit privacy modal (matches your other apps’ behavior) -->
+  <!-- First-visit privacy modal -->
   <div id="welcomeModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-card">
       <h2 id="modalTitle">Welcome</h2>
