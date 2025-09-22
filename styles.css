@@ -36,6 +36,14 @@ button[hidden]{display:none}
   border:2px dashed var(--dash);
   box-shadow:0 16px 40px rgba(0,0,0,.06);
 }
+.prompt-heading {
+  text-align: center;
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem;
+  opacity: 0.85;
+  font-weight: 600;
+}
+
 .prompt-text{font-size:clamp(1.6rem, 5.6vw, 3.2rem); line-height:1.2; text-align:center; margin:0}
 
 /* WCSL-style buttons */
