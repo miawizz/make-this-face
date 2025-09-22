@@ -44,7 +44,12 @@ button[hidden]{display:none}
   font-weight: 600;
 }
 
-.prompt-text{font-size:clamp(1.6rem, 5.6vw, 3.2rem); line-height:1.2; text-align:center; margin:0}
+.prompt-text {
+  font-size: clamp(1.4rem, 4.5vw, 2.5rem);
+  line-height: 1.25;
+  text-align: center;
+  margin: 0;
+}
 
 /* WCSL-style buttons */
 .btns{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:.6rem}
