@@ -16,6 +16,116 @@
   <script defer src="app.js?v=7"></script>
 </head>
 <body>
+  <!-- Install-help snippet -->
+  <style>
+    .install-help {position:sticky;top:0;z-index:10001;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    .install-help__wrap{background:#fff7f4;border-bottom:1px solid #f2e7e3}
+    .install-help__summary{display:flex;align-items:center;gap:.5rem;padding:.55rem .85rem;cursor:pointer;font-size:.95rem}
+    .install-help__summary:hover{background:#fff3ee}
+    summary.install-help__wrap::-webkit-details-marker{display:none}
+    summary.install-help__wrap::marker{content:'';font-size:0}
+    .install-help__summary .caret{transition:transform .2s ease;width:var(--caret-size,40px);height:var(--caret-size,40px)}
+    details[open] .install-help__summary .caret{transform:rotate(180deg)}
+    details[open] .install-help__wrap{box-shadow:inset 0 -1px 0 #e7d8d3,0 1px 0 #e7d8d3}
+    .install-help__panel{padding:.75rem .9rem .95rem .9rem;display:grid;gap:.75rem}
+    .install-help__panel h4{margin:.25rem 0;font-size:.95rem}
+    .install-help__panel p{margin:0 0 .35rem 0;font-size:.9rem}
+    .install-help__close{all:unset;display:inline-grid;place-items:center;width:32px;height:32px;cursor:pointer;color:#000;line-height:1;font-weight:700}
+    .install-help__close:focus-visible{outline:2px solid #000;outline-offset:2px}
+    .install-help__tips{font-size:.85rem;opacity:.9}
+    .install-help__box{border:1px solid #efdfda;background:#fff;border-radius:.65rem;padding:.65rem .75rem}
+    .install-help__steps{margin:.25rem 0 0 1.15rem}
+    .install-help__steps li{margin:.25rem 0}
+    .install-help__never{border:0;background:transparent;padding:0;font:inherit;color:#6b7f88;text-decoration:underline;cursor:pointer}
+    .install-help__never:hover{color:#46565f}
+    .hidden{display:none}
+    .install-help.gate-hide{display:none}
+    @media (prefers-reduced-motion: reduce){.install-help__summary .caret{transition:none}}
+  </style>
+
+  <details class="install-help gate-hide" id="install-help" data-dismiss-key="ph-install-help-mtf">
+    <summary class="install-help__wrap">
+      <div class="install-help__summary" role="button" aria-expanded="false">
+        <svg class="caret" width="16" height="16" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+        <strong>Tap here for a reminder of how to save this app to your home screen</strong>
+        <button class="install-help__close" type="button" title="Hide">✖</button>
+      </div>
+    </summary>
+    <div class="install-help__panel" id="install-help-panel" aria-live="polite">
+      <div class="install-help__box" id="ios-safari" hidden>
+        <h4>iPhone or iPad using Safari</h4>
+        <ol class="install-help__steps">
+          <li>Tap the Share icon at the bottom of Safari</li>
+          <li>Choose <em>Add to Home Screen</em></li>
+          <li>Tap <em>Add</em></li>
+        </ol>
+      </div>
+      <div class="install-help__box" id="ios-chrome" hidden>
+        <h4>iPhone or iPad using Chrome</h4>
+        <ol>
+          <li>Tap the Share icon in the top right</li>
+          <li>Scroll and choose <em>Add to Home Screen</em></li>
+          <li>Tap <em>Add</em></li>
+        </ol>
+        <p class="install-help__tips">If missing, open in Safari and follow those steps</p>
+      </div>
+      <div class="install-help__box" id="android-chrome" hidden>
+        <h4>Android using Chrome</h4>
+        <ol>
+          <li>Tap the ⋮ menu</li>
+          <li>Choose <em>Install app</em> or <em>Add to Home screen</em></li>
+          <li>Confirm</li>
+        </ol>
+      </div>
+      <div class="install-help__box" id="android-samsung" hidden>
+        <h4>Android using Samsung Internet</h4>
+        <ol>
+          <li>Tap the menu button</li>
+          <li>Select <em>Add page to</em> → <em>Home screen</em></li>
+          <li>Confirm</li>
+        </ol>
+      </div>
+      <div class="install-help__box" id="other-browsers" hidden>
+        <h4>Other browsers</h4>
+        <p>Look in the menu for <em>Install</em> or <em>Add to Home Screen</em></p>
+      </div>
+      <p class="install-help__tips">Installing adds an icon to your home screen so it works like an app</p>
+      <button type="button" id="install-help-never" class="install-help__never">Don’t show this again</button>
+    </div>
+  </details>
+
+  <script>
+  (function(){
+    const root=document.getElementById('install-help');
+    const closeBtn=root.querySelector('.install-help__close');
+    const key='ph-install-help-mtf';
+
+    if(localStorage.getItem(key)==='1'){root.classList.add('hidden');}
+    closeBtn.addEventListener('click',()=>{localStorage.setItem(key,'1');root.classList.add('hidden');});
+    document.getElementById('install-help-never')?.addEventListener('click',()=>{localStorage.setItem(key,'1');root.classList.add('hidden');});
+
+    const ua=navigator.userAgent||'';
+    const isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    const isAndroid=/Android/i.test(ua);
+    const isSamsung=/SamsungBrowser/i.test(ua);
+    const isCriOS=/CriOS/i.test(ua);
+    const isFxiOS=/FxiOS/i.test(ua);
+    const isSafari=isIOS&&/Safari/i.test(ua)&&!isCriOS&&!isFxiOS;
+    const isChromeAndroid=isAndroid&&/Chrome/i.test(ua)&&!isSamsung;
+
+    function show(id){document.getElementById(id).hidden=false;}
+    if(isIOS&&isSafari){show('ios-safari');}
+    else if(isIOS&&isCriOS){show('ios-chrome');}
+    else if(isAndroid&&isSamsung){show('android-samsung');}
+    else if(isChromeAndroid){show('android-chrome');}
+    else{show('other-browsers');}
+
+    // gate with welcome modal
+    if(localStorage.getItem('mtf_ok')==='1'){root.classList.remove('gate-hide');}
+    document.getElementById('agreeBtn')?.addEventListener('click',()=>root.classList.remove('gate-hide'));
+  })();
+  </script>
+
   <header class="app-header">
     <div class="brand">
       <img class="logo" src="icons/icon-192.png" alt="Make This Face logo" width="36" height="36" />
@@ -27,18 +137,6 @@
   </header>
 
   <main id="main" class="container" tabindex="-1">
-    <!-- Install instructions -->
-    <section class="notice">
-      <details>
-        <summary>Install this app</summary>
-        <ul>
-          <li><strong>iPhone/iPad:</strong> Share → Add to Home Screen</li>
-          <li><strong>Android:</strong> Menu → Add to Home Screen</li>
-          <li><strong>Desktop (Chrome):</strong> Menu → Install “Make This Face”</li>
-        </ul>
-      </details>
-    </section>
-
     <!-- Gameplay instructions -->
     <section class="instructions">
       <p>Tap the button to get a prompt and try to make your face match it! <strong>Challenge:</strong> freeze your expression like a snapshot! No movement and no sound, just hold that face!</p>
@@ -76,9 +174,7 @@
     <div id="toast" role="status" aria-live="polite"></div>
 
     <section class="footer-note">
-      <p>
-        Made by Playful Heart Parenting
-      </p>
+      <p>Made by Playful Heart Parenting</p>
     </section>
   </main>
 
