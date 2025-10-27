@@ -121,6 +121,7 @@
     { t: "You see a cat stuck in a tree and you’re determined to save it but then you realize it’s a baby mountain lion" },
     { t: "You just had an idea for the best invention ever, a sweatshirt with wings that lets you fly" },
     { t: "You just spilled an entire milkshake on your lap and it’s COLD" },
+    { t: "You're riding your bike and turn to see an ostrich chasing you!" },
     { t: "You just saw a grandpa riding a skateboard and he did a backflip on it" }
   ];
 
