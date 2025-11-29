@@ -122,6 +122,9 @@
     { t: "You just had an idea for the best invention ever, a sweatshirt with wings that lets you fly" },
     { t: "You just spilled an entire milkshake on your lap and it’s COLD" },
     { t: "You're riding your bike and turn to see an ostrich chasing you!" },
+    { t: "Your four-year-old just put his cold hands on your belly! (submitted by a parent!" },
+    { t: "You just sneezed and a booger flew out and it's shaped EXACTLY like a T-rex" },
+    { t: "It's your first time going outside for the day and you thought it was going to be sunny and warm but it's snowing and you're wearing shorts and a tank top" },
     { t: "You just saw a grandpa riding a skateboard and he did a backflip on it" }
   ];
 
