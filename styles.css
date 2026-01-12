@@ -100,3 +100,19 @@ button[hidden]{display:none}
 .modal-actions button{ background:var(--brand) }
 
 .footer-note{text-align:center;opacity:.8;margin-top:2rem;font-size:.9rem}
+
+/* Back to Hub button */
+a.home-button {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  z-index: 10002;
+}
+
