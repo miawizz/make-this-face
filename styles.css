@@ -131,6 +131,13 @@ a.home-button {
 a.home-button:active {
   transform: scale(0.97);
 }
+/* Header layout fix */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 
 
 
