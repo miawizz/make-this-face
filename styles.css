@@ -101,18 +101,14 @@ button[hidden]{display:none}
 
 .footer-note{text-align:center;opacity:.8;margin-top:2rem;font-size:.9rem}
 
-/* Back to Hub button */
+/* Back to Hub button (header-safe) */
 a.home-button {
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  background: rgba(0, 0, 0, 0.75);
-  color: #ffffff;
-  padding: 8px 12px;
-  border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
+  color: #127490;
   text-decoration: none;
-  z-index: 10002;
+  margin-right: 12px;
+  white-space: nowrap;
 }
+
 
