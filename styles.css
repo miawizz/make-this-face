@@ -110,5 +110,27 @@ a.home-button {
   margin-right: 12px;
   white-space: nowrap;
 }
+/* Back to Hub button (header right aligned) */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+a.home-button {
+  font-size: 14px;
+  font-weight: 600;
+  color: #127490;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(18, 116, 144, 0.08);
+  white-space: nowrap;
+}
+
+a.home-button:active {
+  transform: scale(0.97);
+}
+
 
 
