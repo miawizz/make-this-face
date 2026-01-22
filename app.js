@@ -138,6 +138,8 @@
     { t: "You just realized you've had a moldy peanut butter and jelly sandwich in your coat pocket since last winter" },
     { t: "You just got done tap dancing on stage for a crowd of 10,000 people and you're exhausted, but still smiling while you do your final pose" },
     { t: "It's your first time going outside for the day and you thought it was going to be sunny and warm but it's snowing and you're wearing shorts and a tank top" },
+    { t: "You just did the biggest fart in the world and you're on a plane full of people! - submitted by Leena!" },
+    { t: "You just heard a strange sound coming from your own shoe and when you take your shoe off you see a miniature grumpy gnome sleeping between your toes" },
     { t: "You just saw a grandpa riding a skateboard and he did a backflip on it" }
   ];
 
