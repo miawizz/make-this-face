@@ -138,6 +138,10 @@ a.home-button:active {
   justify-content: space-between;
 }
 
+.circle-mode .home-button{
+  display: none !important;
+}
+
 
 
 
