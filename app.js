@@ -14,10 +14,7 @@
     btnCopyAll: document.getElementById("btnCopyAll"),
     btnClear: document.getElementById("btnClear"),
     toast: document.getElementById("toast"),
-    // Modal
-    modal: document.getElementById("welcomeModal"),
-    agreeChk: document.getElementById("agreeChk"),
-    agreeBtn: document.getElementById("agreeBtn"),
+
   };
 
   // ==== 100 PROMPTS ====
@@ -143,12 +140,6 @@
     { t: "You just saw a grandpa riding a skateboard and he did a backflip on it" }
   ];
 
-  // ===== First-visit privacy modal =====
-  function showModal(){ els.modal?.classList.remove("hidden"); }
-  function hideModal(){ els.modal?.classList.add("hidden"); }
-  if (!localStorage.getItem("mtf_ok")) showModal();
-  els.agreeChk?.addEventListener("change", () => { els.agreeBtn.disabled = !els.agreeChk.checked; });
-  els.agreeBtn?.addEventListener("click", () => { localStorage.setItem("mtf_ok", "1"); hideModal(); });
 
   // ===== Install flow =====
   let deferredPrompt = null;
