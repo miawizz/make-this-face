@@ -3,119 +3,200 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <title>Make This Face</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
   <meta name="theme-color" content="#127490" />
 
   <!-- PWA / Icons -->
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-  <!-- Styles + App (relative paths) -->
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <!-- Styles + App -->
+  <link rel="stylesheet" href="styles.css?v=6" />
   <script defer src="app.js?v=8"></script>
 </head>
+
 <body>
 
-
-
-<header class="app-header">
-  <div class="brand">
-    <img class="logo" src="icons/icon-192.png" alt="Make This Face logo" width="36" height="36" />
-    <h1>Make This Face</h1>
-  </div>
-
-  <div class="actions">
-    <a href="https://miawizz.github.io/php-app-hub/" class="home-button">
-      Back to Hub
-    </a>
-    <button id="installBtn" aria-label="Install app" hidden>Install</button>
-  </div>
-</header>
-
-
   <main id="main" class="container" tabindex="-1">
-    <!-- Gameplay instructions -->
-<section class="instructions">
-  <p>Tap the button to get a prompt and try to make your face match it!</p>
-  <p><strong>Challenge:</strong> freeze your expression like a snapshot! No movement and no sound, just hold that face!</p>
-</section>
 
-<!-- Prompt card -->
-<section class="prompt-card" aria-live="polite" aria-atomic="true">
-  <h2 class="prompt-heading">Make This Face:</h2>
-  <p id="promptText" class="prompt-text">Loading…</p>
-</section>
-
-
-    <!-- Controls -->
-    <section class="btns">
-      <button id="btnNext">New Prompt</button>
-    </section>
-    <section class="btns">
-      <button id="btnBack">Back</button>
-      <button id="btnFwd">Forward</button>
-    </section>
-
-    <!-- Favorites -->
-    <section id="favWrap" aria-labelledby="favTitle">
-      <div id="favHeader">
-        <h3 id="favTitle">Favorites</h3>
-        <div class="btns" style="margin-top:0;">
-          <button id="btnSave" class="btn-secondary">Save to Favorites</button>
-          <button class="btn-secondary" id="btnCopyAll">Copy All</button>
-          <button class="btn-secondary" id="btnClear">Clear</button>
-        </div>
-      </div>
-      <p class="muted" id="favEmpty">No favorites yet. Save any you love.</p>
-      <ul id="favList"></ul>
-    </section>
-
-    <!-- Tiny toast -->
-    <div id="toast" role="status" aria-live="polite"></div>
-
-          <div style="margin-top: 2rem;">
-      <h2>Submit Your Own!</h2>
-      <p style="font-size: 1rem; max-width: 600px; margin: 0 auto;">
-        Got a funny or creative "Make This Face" idea? We’d love to hear it! Click below to submit — we may feature it in a future update and credit your first name.
-      </p>
-      <button onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdSwRvWtoInxA76bWkL3oM7f5zLCeucOA7cmr018llpr1TbIQ/viewform?usp=header', '_blank')" style="margin-top: 1rem;">
-        Submit Your Idea
-      </button>
+    <!-- Logo -->
+    <div class="logo-wrap">
+      <img
+        class="logo"
+        src="icons/icon-512.png"
+        alt="Make This Face logo"
+      >
     </div>
 
-    <section class="footer-note">
-      <p>© 2025 Mia Wisinski, Playful Heart Parenting. This app is for personal use only by those who have purchased this app from Playful Heart Parenting. Please do not share this link publicly or distribute without explicit permission.</p>
+    <!-- Title -->
+    <h1>MAKE THIS FACE</h1>
+
+    <!-- Generator -->
+    <section class="generator-card">
+
+      <div class="prompt-card" aria-live="polite" aria-atomic="true">
+        <div class="prompt-heading">MAKE THIS FACE:</div>
+        <p id="promptText" class="prompt-text">Loading…</p>
+      </div>
+
+      <button id="btnNext" class="main-button">
+        Make This Face!
+      </button>
+
+      <div class="nav-buttons">
+        <button id="btnBack" class="nav-button">
+          Back
+        </button>
+
+        <button id="btnFwd" class="nav-button">
+          Forward
+        </button>
+      </div>
+
+      <button id="btnSave" class="save-button">
+        Save to Favorites
+      </button>
+
     </section>
+
+
+    <!-- How to Play -->
+    <section class="info-card how-to-play">
+      <h2>HOW TO PLAY</h2>
+
+      <p>
+        Tap the button to get a prompt and try to make your face match it!
+      </p>
+
+      <p>
+        <strong>Challenge:</strong> freeze your expression like a snapshot! No movement and no sound, just hold that face!
+      </p>
+    </section>
+
+
+    <!-- Favorites -->
+    <section id="favWrap" class="info-card" aria-labelledby="favTitle">
+
+      <h2 id="favTitle">FAVORITES</h2>
+
+      <p class="muted" id="favEmpty">
+        No favorites yet. Save any you love.
+      </p>
+
+      <ul id="favList"></ul>
+
+      <div class="favorite-tools">
+        <button class="secondary-button" id="btnCopyAll">
+          Copy All
+        </button>
+
+        <button class="secondary-button" id="btnClear">
+          Clear
+        </button>
+      </div>
+
+    </section>
+
+
+    <!-- Submit -->
+    <section class="info-card">
+      <h2>SUBMIT YOUR OWN!</h2>
+
+      <p>
+        Got a funny or creative "Make This Face" idea? We’d love to hear it!
+        Click below to submit and we may feature it in a future update and
+        credit your first name.
+      </p>
+
+      <button
+        class="secondary-button submit-button"
+        onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdSwRvWtoInxA76bWkL3oM7f5zLCeucOA7cmr018llpr1TbIQ/viewform?usp=header', '_blank')"
+      >
+        Submit Your Idea
+      </button>
+    </section>
+
+
+    <!-- Print & Play -->
+    <section class="info-card print-card">
+      <h2>PRINT &amp; PLAY</h2>
+
+      <p>
+        Prefer screen-free play?
+      </p>
+
+      <a
+        href="mtf-deck.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="download-button"
+      >
+        Download the Make This Face Print &amp; Play Starter Deck
+      </a>
+
+      <p class="print-note">
+        Includes 53 favorite prompts from the app. Just print, cut, and play!
+      </p>
+
+      <p class="print-tip">
+        <em>
+          Tip: If you’re viewing in the app, press and hold this button,
+          copy the link, then open it in your browser to download/print.
+        </em>
+      </p>
+    </section>
+
+
+    <!-- Back to Hub -->
+    <div class="hub-wrap">
+      <a
+        href="https://miawizz.github.io/php-app-hub/"
+        class="home-button"
+      >
+        Back to Hub
+      </a>
+    </div>
+
+
+    <!-- Footer -->
+    <footer class="footer-note">
+      © 2026 Mia Wisinski, Playful Heart Parenting.
+      This app is for personal use only by those who have purchased this app
+      from Playful Heart Parenting. Please do not share this link publicly or
+      distribute without explicit permission.
+    </footer>
+
   </main>
 
 
-   <div class="print-deck" style="margin:2rem 0; text-align:center;">
-  <hr style="margin-bottom:1rem;">
-  <p style="font-family:Poppins, sans-serif; font-size:1rem; color:#18323b;">
-    Prefer screen-free play?
-  </p>
-  <a href="mtf-deck.pdf" target="_blank" rel="noopener noreferrer"
-     style="display:inline-block; padding:.75rem 1.25rem; 
-            background:#127490; color:white; font-weight:600; 
-            text-decoration:none; border-radius:8px;">
-    Download the Make This Face – Print & Play Starter Deck
-  </a>
-  <p style="font-size:.85rem; color:#555; margin-top:.5rem;">
-    Includes 53 favorite prompts from the app. Just print, cut, and play!<br>
-      <em>Tip: If you’re viewing in the app, press and hold this button, copy the link, then open it in your browser to download/print.</em>
-  </p>
-</div>
-<script>
-(function () {
-  const isCircle =
-    new URLSearchParams(window.location.search).get("circle") === "1";
+  <!-- Toast -->
+  <div id="toast" role="status" aria-live="polite"></div>
 
-  if (isCircle) {
-    document.body.classList.add("circle-mode");
-  }
-})();
-</script>
-  
+
+  <!-- Install button retained for existing app.js -->
+  <button id="installBtn" hidden aria-label="Install app">
+    Install
+  </button>
+
+
+  <!-- Circle mode -->
+  <script>
+    (function () {
+      const isCircle =
+        new URLSearchParams(window.location.search).get("circle") === "1";
+
+      if (isCircle) {
+        document.body.classList.add("circle-mode");
+      }
+    })();
+  </script>
+
 </body>
 </html>
