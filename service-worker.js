@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v4"; // bump
+const CACHE_VERSION = "v5"; // bump
 const CACHE_NAME = `mtf-${CACHE_VERSION}`;
 const PRECACHE = [
   `index.html`,
